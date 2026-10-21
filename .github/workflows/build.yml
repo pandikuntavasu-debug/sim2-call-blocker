@@ -1,38 +1,33 @@
-name: Build Android APK
+name: Android CI
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      runs-on: ubuntu-latest
 
-    - name: Set up Java JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
+      steps:
+      - uses: actions/checkout@v3
 
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-      with:
-        gradle-version: "8.4"
+      - name: set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
-    - name: Prepare Project Structure and Build APK
-      run: |
-        if [ -d "src" ] && [ ! -d "app/src" ]; then
-          mv src app/src
-        fi
-        gradle assembleDebug --stacktrace
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: DualSIM-CallBlocker-APK
-        path: '**/build/outputs/apk/debug/*.apk'
+      - name: Build App Bundle (AAB) with Gradle
+        run: ./bundleRelease
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-bundle
+          path: app/build/outputs/bundle/release/app-release.aab
