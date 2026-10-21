@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- SIM 1 & SIM 2 కాల్స్ గుర్తించడానికి అవసరమైన పర్మిషన్లు -->
+    <!-- SIM 1 & SIM 2 కాల్స్ గుర్తించడానికి మరియు కట్ చేయడానికి అవసరమైన పర్మిషన్లు -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.READ_PHONE_NUMBERS" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
     <application
         android:allowBackup="true"
@@ -22,7 +24,7 @@
             </intent-filter>
         </activity>
 
-        <!-- SIM 1 మరియు SIM 2 కాల్స్ రెండింటినీ ఫిల్టర్ చేసే సర్వీస్ -->
+        <!-- SIM 1 మరియు SIM 2 కాల్స్ ఫిల్టర్ చేసే సర్వీస్ -->
         <service
             android:name=".CallScreeningServiceImpl"
             android:permission="android.permission.BIND_SCREENING_SERVICE"
