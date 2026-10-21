@@ -31,28 +31,28 @@ public class CallScreeningServiceImpl extends CallScreeningService {
             incomingNumber = handle.getSchemeSpecificPart();
         }
 
-        String cleanNumber = normalizeNumber(incomingNumber);
+        String cleanIncoming = normalizeNumber(incomingNumber);
 
         SharedPreferences prefs = getSharedPreferences("SIM_BLOCKER_PREFS", Context.MODE_PRIVATE);
         boolean sim1BlockActive = prefs.getBoolean("sim1_block_active", false);
         boolean sim2BlockActive = prefs.getBoolean("sim2_block_active", false);
 
-        Set<String> sim1Whitelist = new HashSet<>(prefs.getStringSet("sim1_whitelist", new HashSet<>()));
-        Set<String> sim2Whitelist = new HashSet<>(prefs.getStringSet("sim2_whitelist", new HashSet<>()));
+        Set<String> sim1Whitelist = prefs.getStringSet("sim1_whitelist", new HashSet<>());
+        Set<String> sim2Whitelist = prefs.getStringSet("sim2_whitelist", new HashSet<>());
 
         int simSlot = getSimSlotIndex(callDetails);
 
         boolean shouldBlock = false;
 
-        // SIM 1 తనిఖీ (0 అంటే SIM 1)
+        // SIM 1 తనిఖీ
         if (simSlot == 0 && sim1BlockActive) {
-            if (!isNumberWhitelisted(cleanNumber, sim1Whitelist)) {
+            if (!isNumberWhitelisted(cleanIncoming, sim1Whitelist)) {
                 shouldBlock = true;
             }
         }
-        // SIM 2 తనిఖీ (1 అంటే SIM 2)
+        // SIM 2 తనిఖీ
         else if (simSlot == 1 && sim2BlockActive) {
-            if (!isNumberWhitelisted(cleanNumber, sim2Whitelist)) {
+            if (!isNumberWhitelisted(cleanIncoming, sim2Whitelist)) {
                 shouldBlock = true;
             }
         }
@@ -63,8 +63,6 @@ public class CallScreeningServiceImpl extends CallScreeningService {
             response.setRejectCall(true);
             response.setSkipCallLog(false);
             response.setSkipNotification(true);
-            
-            // ఫోన్ కాంటాక్ట్ అయినా సరే వెంటనే కాల్ కట్ చేయడం
             forceEndCall();
         } else {
             response.setDisallowCall(false);
@@ -90,8 +88,11 @@ public class CallScreeningServiceImpl extends CallScreeningService {
         if (incoming.isEmpty()) return false;
         for (String allowed : whitelist) {
             String cleanAllowed = normalizeNumber(allowed);
-            if (!cleanAllowed.isEmpty() && cleanAllowed.equals(incoming)) {
-                return true;
+            if (!cleanAllowed.isEmpty()) {
+                // నంబర్ చివర ఉన్న అంకెలు సరిపోతున్నాయా లేదా అని తనిఖీ చేయడం (+91 సమస్య రాకుండా)
+                if (incoming.equals(cleanAllowed) || incoming.endsWith(cleanAllowed) || cleanAllowed.endsWith(incoming)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -99,6 +100,7 @@ public class CallScreeningServiceImpl extends CallScreeningService {
 
     private String normalizeNumber(String number) {
         if (number == null) return "";
+        // కేవలం నంబర్లను మాత్రమే ఉంచుకోవడం (ప్లస్ సింబల్స్ తొలగించడం)
         String clean = number.replaceAll("[^0-9]", "");
         if (clean.length() > 10) {
             clean = clean.substring(clean.length() - 10);
@@ -113,7 +115,6 @@ public class CallScreeningServiceImpl extends CallScreeningService {
         String handleId = accountHandle.getId();
         if (handleId == null) return 0;
 
-        // పద్ధతి 1: TelecomManager లోని SIM క్రమం ద్వారా గుర్తించడం
         try {
             TelecomManager tm = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
             if (tm != null && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -121,7 +122,7 @@ public class CallScreeningServiceImpl extends CallScreeningService {
                 if (accounts != null && accounts.size() > 1) {
                     for (int i = 0; i < accounts.size(); i++) {
                         if (accounts.get(i).getId().equals(handleId) || accounts.get(i).equals(accountHandle)) {
-                            return i; // 0 = SIM 1, 1 = SIM 2
+                            return i; 
                         }
                     }
                 }
@@ -129,7 +130,6 @@ public class CallScreeningServiceImpl extends CallScreeningService {
         } catch (Exception ignored) {
         }
 
-        // పద్ధతి 2: SubscriptionManager ద్వారా గుర్తించడం
         try {
             SubscriptionManager sm = (SubscriptionManager) getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
             if (sm != null && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
