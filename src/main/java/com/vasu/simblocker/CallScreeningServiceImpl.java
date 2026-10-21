@@ -44,14 +44,11 @@ public class CallScreeningServiceImpl extends CallScreeningService {
 
         boolean shouldBlock = false;
 
-        // SIM 1 తనిఖీ
         if (simSlot == 0 && sim1BlockActive) {
             if (!isNumberWhitelisted(cleanIncoming, sim1Whitelist)) {
                 shouldBlock = true;
             }
-        }
-        // SIM 2 తనిఖీ
-        else if (simSlot == 1 && sim2BlockActive) {
+        } else if (simSlot == 1 && sim2BlockActive) {
             if (!isNumberWhitelisted(cleanIncoming, sim2Whitelist)) {
                 shouldBlock = true;
             }
@@ -63,7 +60,6 @@ public class CallScreeningServiceImpl extends CallScreeningService {
             response.setRejectCall(true);
             response.setSkipCallLog(false);
             response.setSkipNotification(true);
-            forceEndCall();
         } else {
             response.setDisallowCall(false);
             response.setRejectCall(false);
@@ -72,24 +68,11 @@ public class CallScreeningServiceImpl extends CallScreeningService {
         respondToCall(callDetails, response.build());
     }
 
-    private void forceEndCall() {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                TelecomManager tm = (TelecomManager) getSystemService(Context.TELECOM_SERVICE);
-                if (tm != null && ActivityCompat.checkSelfPermission(this, Manifest.permission.ANSWER_PHONE_CALLS) == PackageManager.PERMISSION_GRANTED) {
-                    tm.endCall();
-                }
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
     private boolean isNumberWhitelisted(String incoming, Set<String> whitelist) {
         if (incoming.isEmpty()) return false;
         for (String allowed : whitelist) {
             String cleanAllowed = normalizeNumber(allowed);
             if (!cleanAllowed.isEmpty()) {
-                // నంబర్ చివర ఉన్న అంకెలు సరిపోతున్నాయా లేదా అని తనిఖీ చేయడం (+91 సమస్య రాకుండా)
                 if (incoming.equals(cleanAllowed) || incoming.endsWith(cleanAllowed) || cleanAllowed.endsWith(incoming)) {
                     return true;
                 }
@@ -100,7 +83,6 @@ public class CallScreeningServiceImpl extends CallScreeningService {
 
     private String normalizeNumber(String number) {
         if (number == null) return "";
-        // కేవలం నంబర్లను మాత్రమే ఉంచుకోవడం (ప్లస్ సింబల్స్ తొలగించడం)
         String clean = number.replaceAll("[^0-9]", "");
         if (clean.length() > 10) {
             clean = clean.substring(clean.length() - 10);
