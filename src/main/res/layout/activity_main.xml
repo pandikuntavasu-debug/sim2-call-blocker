@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dual SIM Call Blocker"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#1E1E1E"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- SIM 1 విభాగం -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SIM 1 Protection"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#0D47A1" />
+
+            <Switch
+                android:id="@+id/switchSim1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Block Unknown Calls on SIM 1"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnAddSim1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="+ Add Whitelist Number"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Allowed Numbers (Tap to delete):"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="8dp" />
+
+            <ListView
+                android:id="@+id/lvSim1"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+        <!-- SIM 2 విభాగం -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF"
+            android:orientation="vertical"
+            android:padding="14dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SIM 2 Protection"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="#1B5E20" />
+
+            <Switch
+                android:id="@+id/switchSim2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Block Unknown Calls on SIM 2"
+                android:textSize="14sp"
+                android:layout_marginTop="8dp" />
+
+            <Button
+                android:id="@+id/btnAddSim2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="+ Add Whitelist Number"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Allowed Numbers (Tap to delete):"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:layout_marginTop="8dp" />
+
+            <ListView
+                android:id="@+id/lvSim2"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="6dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
