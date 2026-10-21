@@ -1,10 +1,12 @@
 package com.vasu.simblocker;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -14,6 +16,7 @@ import android.widget.ListView;
 import android.widget.Switch;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,8 +35,9 @@ public class MainActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SIM_BLOCKER_PREFS", Context.MODE_PRIVATE);
 
-        // కాల్ స్క్రీనింగ్ పర్మిషన్ అడగడం
+        // కాల్ స్క్రీనింగ్ మరియు ఫోన్ పర్మిషన్లు అడగడం
         requestScreeningRole();
+        requestRequiredPermissions();
 
         switchSim1 = findViewById(R.id.switchSim1);
         switchSim2 = findViewById(R.id.switchSim2);
@@ -42,39 +46,32 @@ public class MainActivity extends AppCompatActivity {
         ListView lvSim1 = findViewById(R.id.lvSim1);
         ListView lvSim2 = findViewById(R.id.lvSim2);
 
-        // మునుపటి సెట్టింగ్స్ లోడ్ చేయడం
         switchSim1.setChecked(prefs.getBoolean("sim1_block_active", false));
         switchSim2.setChecked(prefs.getBoolean("sim2_block_active", false));
 
         switchSim1.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("sim1_block_active", isChecked).apply();
-            Toast.makeText(this, "SIM 1 Protection: " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+            prefs.edit().putBoolean("sim1_block_active", isChecked).commit();
+            Toast.makeText(this, "SIM 1 Whitelist Mode: " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
 
         switchSim2.setOnCheckedChangeListener((btn, isChecked) -> {
-            prefs.edit().putBoolean("sim2_block_active", isChecked).apply();
-            Toast.makeText(this, "SIM 2 Protection: " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+            prefs.edit().putBoolean("sim2_block_active", isChecked).commit();
+            Toast.makeText(this, "SIM 2 Whitelist Mode: " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
         });
 
-        // SIM 1 వైట్‌లిస్ట్
         Set<String> set1 = prefs.getStringSet("sim1_whitelist", new HashSet<>());
         sim1List = new ArrayList<>(set1);
         adapterSim1 = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sim1List);
         lvSim1.setAdapter(adapterSim1);
 
-        // SIM 2 వైట్‌లిస్ట్
         Set<String> set2 = prefs.getStringSet("sim2_whitelist", new HashSet<>());
         sim2List = new ArrayList<>(set2);
         adapterSim2 = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, sim2List);
         lvSim2.setAdapter(adapterSim2);
 
-        // SIM 1 నంబర్ జోడించడం
         btnAddSim1.setOnClickListener(v -> showAddDialog(1));
-
-        // SIM 2 నంబర్ జోడించడం
         btnAddSim2.setOnClickListener(v -> showAddDialog(2));
 
-        // లిస్ట్‌లోని నంబర్‌పై నొక్కితే డిలీట్ చేయడం
         lvSim1.setOnItemClickListener((parent, view, position, id) -> {
             String num = sim1List.get(position);
             showDeleteDialog(1, num, position);
@@ -88,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAddDialog(int simSlot) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Add Whitelist Number (SIM " + simSlot + ")");
+        builder.setTitle("Add Allowed Number (SIM " + simSlot + ")");
 
         final EditText input = new EditText(this);
         input.setHint("Enter 10 digit mobile number");
@@ -100,11 +97,11 @@ public class MainActivity extends AppCompatActivity {
                 if (simSlot == 1) {
                     sim1List.add(number);
                     adapterSim1.notifyDataSetChanged();
-                    prefs.edit().putStringSet("sim1_whitelist", new HashSet<>(sim1List)).apply();
+                    prefs.edit().putStringSet("sim1_whitelist", new HashSet<>(sim1List)).commit();
                 } else {
                     sim2List.add(number);
                     adapterSim2.notifyDataSetChanged();
-                    prefs.edit().putStringSet("sim2_whitelist", new HashSet<>(sim2List)).apply();
+                    prefs.edit().putStringSet("sim2_whitelist", new HashSet<>(sim2List)).commit();
                 }
                 Toast.makeText(this, "Number added to SIM " + simSlot, Toast.LENGTH_SHORT).show();
             }
@@ -116,16 +113,16 @@ public class MainActivity extends AppCompatActivity {
     private void showDeleteDialog(int simSlot, String number, int position) {
         new AlertDialog.Builder(this)
             .setTitle("Remove Number")
-            .setMessage("Do you want to remove " + number + " from SIM " + simSlot + " whitelist?")
+            .setMessage("Remove " + number + " from SIM " + simSlot + " whitelist?")
             .setPositiveButton("Delete", (dialog, which) -> {
                 if (simSlot == 1) {
                     sim1List.remove(position);
                     adapterSim1.notifyDataSetChanged();
-                    prefs.edit().putStringSet("sim1_whitelist", new HashSet<>(sim1List)).apply();
+                    prefs.edit().putStringSet("sim1_whitelist", new HashSet<>(sim1List)).commit();
                 } else {
                     sim2List.remove(position);
                     adapterSim2.notifyDataSetChanged();
-                    prefs.edit().putStringSet("sim2_whitelist", new HashSet<>(sim2List)).apply();
+                    prefs.edit().putStringSet("sim2_whitelist", new HashSet<>(sim2List)).commit();
                 }
             })
             .setNegativeButton("Cancel", null)
@@ -140,5 +137,14 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(intent, 101);
             }
         }
+    }
+
+    private void requestRequiredPermissions() {
+        String[] permissions = {
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.ANSWER_PHONE_CALLS
+        };
+        ActivityCompat.requestPermissions(this, permissions, 102);
     }
 }
